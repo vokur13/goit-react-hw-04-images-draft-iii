@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import * as API from 'services/api';
@@ -72,8 +72,12 @@ export function ImageGalleryHub({
       return;
     }
     setTotalPages(Math.ceil(_totalHits / _perPage));
+    if (totalPages > _page) {
+      setLoadMore(true);
+    }
     if (_page === totalPages) {
       toast.warn("We're sorry, but you've reached the end of search results.");
+      setLoadMore(false);
     }
   }, [_perPage, _totalHits, _page, totalPages]);
 
@@ -112,13 +116,13 @@ export function ImageGalleryHub({
     return (
       <>
         <ImageGallery data={_gallery} />;
-        {_total < _totalHits ? (
+        {loadMore && (
           <Box display="flex" justifyContent="center">
             <Button type="button" onClick={handleMoreImage}>
               Load more
             </Button>
           </Box>
-        ) : null}
+        )}
       </>
     );
   }
