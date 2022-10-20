@@ -9,10 +9,11 @@ const searchParams = new URLSearchParams({
   key: API_KEY,
   image_type: 'photo',
   orientation: 'horizontal',
-  per_page: 12,
 });
 
-export const getGallery = async (query, page) => {
-  const { data } = await axios.get(`/?q=${query}&page=${page}&${searchParams}`);
+export const getGallery = async (query, page, perPage) => {
+  const { data } = await axios.get(
+    `/?q=${query}&page=${page}&per_page=${perPage}&${searchParams}`
+  );
   return data;
 };

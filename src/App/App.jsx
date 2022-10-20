@@ -9,6 +9,7 @@ export const App = () => {
   const initialValue = 1;
 
   const [page, setPage] = useState(initialValue);
+  const [perPage, setPerPage] = useState(12);
   const [query, setQuery] = useState('');
   const [gallery, setGallery] = useState([]);
   const [total, setTotal] = useState(null);
@@ -19,6 +20,7 @@ export const App = () => {
       return toast.warn('Please let us know your query item');
     }
     setPage(initialValue);
+    setPerPage(12);
     setQuery(query.trim().toLowerCase());
     setGallery([]);
     setTotal(null);
@@ -30,6 +32,7 @@ export const App = () => {
       <Searchbar onSubmit={handleFormSubmit} />
       <ImageGalleryHub
         page={page}
+        perPage={perPage}
         query={query}
         gallery={gallery}
         total={total}
