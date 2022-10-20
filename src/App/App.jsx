@@ -29,7 +29,7 @@ export const App = () => {
 
   return (
     <>
-      <Searchbar onSubmit={handleFormSubmit} />
+      <Searchbar onFormSubmit={handleFormSubmit} />
       <ImageGalleryHub
         page={page}
         perPage={perPage}
