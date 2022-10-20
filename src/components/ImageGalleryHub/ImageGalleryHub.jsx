@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
 import * as API from 'services/api';
@@ -23,7 +23,31 @@ export function ImageGalleryHub({
   total,
   totalHits,
 }) {
-  const [_page, setPage] = useState(page);
+  const step = 1;
+  const initialValue = {
+    page,
+    perPage,
+    query,
+    gallery,
+    total,
+    totalHits,
+  };
+
+  function setReducer(state, action) {
+    switch (action.type) {
+      case 'increment':
+        return { ...state, page: state.page + action.payload };
+      default:
+        throw new Error(`Unsupported action action type ${action.type}`);
+    }
+  }
+
+  const [state, dispatch] = useReducer(setReducer, initialValue);
+
+  function handleMoreImage() {
+    dispatch({ type: 'increment', payload: step });
+  }
+
   const [_gallery, setGallery] = useState(gallery);
   const [_total, setTotal] = useState(total);
   const [_totalHits, setTotalHits] = useState(totalHits);
@@ -34,11 +58,10 @@ export function ImageGalleryHub({
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    setPage(page);
     setGallery(gallery);
     setTotal(total);
     setTotalHits(totalHits);
-  }, [gallery, page, total, totalHits]);
+  }, [gallery, total, totalHits]);
 
   useEffect(() => {
     if (!query) {
@@ -49,7 +72,7 @@ export function ImageGalleryHub({
       try {
         const { totalHits, hits } = await API.getGallery(
           query,
-          _page,
+          state.page,
           _perPage
         );
         console.log(totalHits, hits);
@@ -65,21 +88,21 @@ export function ImageGalleryHub({
       }
     }
     fetchAssets();
-  }, [_perPage, _page, query]);
+  }, [_perPage, query, state.page]);
 
   useEffect(() => {
     if (!_totalHits) {
       return;
     }
     setTotalPages(Math.ceil(_totalHits / _perPage));
-    if (totalPages > _page) {
+    if (totalPages > state.page) {
       setLoadMore(true);
     }
-    if (_page === totalPages) {
+    if (state.page === totalPages) {
       toast.warn("We're sorry, but you've reached the end of search results.");
       setLoadMore(false);
     }
-  }, [_perPage, _totalHits, _page, totalPages]);
+  }, [_perPage, _totalHits, state.page, totalPages]);
 
   useEffect(() => {
     if (!query) {
@@ -98,10 +121,6 @@ export function ImageGalleryHub({
     }
     toast.success(`Hooray! We found ${_totalHits} images.`);
   }, [_totalHits]);
-
-  function handleMoreImage() {
-    setPage(prevState => prevState + 1);
-  }
 
   if (status === Status.IDLE) {
     return <div>Please let us know your query item</div>;
