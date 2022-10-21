@@ -15,6 +15,17 @@ const Status = {
   REJECTED: 'rejected',
 };
 
+function setReducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { ...state, page: state.page + action.payload };
+    case 'gallery':
+      return { ...state, gallery: [...state.gallery, ...action.payload] };
+    default:
+      throw new Error(`Unsupported action action type ${action.type}`);
+  }
+}
+
 export function ImageGalleryHub({
   page,
   perPage,
@@ -31,18 +42,9 @@ export function ImageGalleryHub({
     gallery,
     total,
     totalHits,
+    error: false,
+    status: Status.IDLE,
   };
-
-  function setReducer(state, action) {
-    switch (action.type) {
-      case 'increment':
-        return { ...state, page: state.page + action.payload };
-      case 'gallery':
-        return { ...state, gallery: [...state.gallery, ...action.payload] };
-      default:
-        throw new Error(`Unsupported action action type ${action.type}`);
-    }
-  }
 
   const [state, dispatch] = useReducer(setReducer, initialValue);
 
@@ -50,7 +52,7 @@ export function ImageGalleryHub({
     dispatch({ type: 'increment', payload: step });
   }
 
-  //   const [_gallery, setGallery] = useState(gallery);
+  const [_gallery, setGallery] = useState(gallery);
   const [_total, setTotal] = useState(total);
   const [_totalHits, setTotalHits] = useState(totalHits);
   const [status, setStatus] = useState(Status.IDLE);
@@ -60,7 +62,7 @@ export function ImageGalleryHub({
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    //     setGallery(gallery);
+    setGallery(gallery);
     setTotal(total);
     setTotalHits(totalHits);
   }, [gallery, total, totalHits]);
@@ -77,9 +79,8 @@ export function ImageGalleryHub({
           state.page,
           _perPage
         );
-        // setGallery(prevState => [...prevState, ...hits]);
-        dispatch({ type: 'gallery', payload: hits });
-        console.log('dispatch', dispatch({ type: 'gallery', payload: hits }));
+        setGallery(prevState => [...prevState, ...hits]);
+        // dispatch({ type: 'gallery', payload: hits });
         setTotal(prevState => prevState + hits.length);
         setTotalHits(totalHits);
         setStatus(Status.RESOLVED);
@@ -129,7 +130,7 @@ export function ImageGalleryHub({
     return <div>Please let us know your query item</div>;
   }
   if (status === Status.PENDING) {
-    return <ImageGalleryPending query={query} data={state.gallery} />;
+    return <ImageGalleryPending query={query} data={_gallery} />;
   }
   if (status === Status.REJECTED) {
     return <ImageGalleryError message={error.message} />;
@@ -137,7 +138,7 @@ export function ImageGalleryHub({
   if (status === Status.RESOLVED) {
     return (
       <>
-        <ImageGallery data={state.gallery} />;
+        <ImageGallery data={_gallery} />;
         {loadMore && (
           <Box display="flex" justifyContent="center">
             <Button type="button" onClick={handleMoreImage}>
