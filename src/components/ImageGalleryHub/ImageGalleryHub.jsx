@@ -52,30 +52,32 @@ export function ImageGalleryHub({
     dispatch({ type: 'increment', payload: step });
   }
 
+  const [_query, setQuery] = useState(query);
   const [_gallery, setGallery] = useState(gallery);
   const [_total, setTotal] = useState(total);
   const [_totalHits, setTotalHits] = useState(totalHits);
+  const [_perPage] = useState(perPage);
   const [status, setStatus] = useState(Status.IDLE);
   const [error, setError] = useState(false);
-  const [_perPage] = useState(perPage);
   const [loadMore, setLoadMore] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
+    setQuery(query);
     setGallery(gallery);
     setTotal(total);
     setTotalHits(totalHits);
-  }, [gallery, total, totalHits]);
+  }, [gallery, query, total, totalHits]);
 
   useEffect(() => {
-    if (!query) {
+    if (!_query) {
       return;
     }
     setStatus(Status.PENDING);
     async function fetchAssets() {
       try {
         const { totalHits, hits } = await API.getGallery(
-          query,
+          _query,
           state.page,
           _perPage
         );
@@ -92,7 +94,7 @@ export function ImageGalleryHub({
       }
     }
     fetchAssets();
-  }, [_perPage, query, state.page]);
+  }, [_perPage, _query, state.page]);
 
   useEffect(() => {
     if (!_totalHits) {
@@ -109,15 +111,16 @@ export function ImageGalleryHub({
   }, [_perPage, _totalHits, state.page, totalPages]);
 
   useEffect(() => {
-    if (!query) {
+    if (!_query) {
       return;
     }
     if (_total === 0) {
       toast.error(
-        `Sorry, there are no images matching your search query for '${query}'. Please try again.`
+        `Sorry, there are no images matching your search query for '${_query}'. Please try again.`
       );
+      setStatus(Status.IDLE);
     }
-  }, [_total, query]);
+  }, [_query, _total]);
 
   useEffect(() => {
     if (!_totalHits) {
@@ -130,7 +133,7 @@ export function ImageGalleryHub({
     return <div>Please let us know your query item</div>;
   }
   if (status === Status.PENDING) {
-    return <ImageGalleryPending query={query} data={_gallery} />;
+    return <ImageGalleryPending query={_query} data={_gallery} />;
   }
   if (status === Status.REJECTED) {
     return <ImageGalleryError message={error.message} />;
@@ -158,9 +161,3 @@ ImageGalleryHub.propTypes = {
   total: PropTypes.number,
   totalHits: PropTypes.number,
 };
-
-// {
-//   /* <p>Whoops, something went wrong, no item upon query {query} found</p> */
-// }
-
-// // error.response.data
