@@ -52,7 +52,17 @@ export function ImageGalleryHub({
     dispatch({ type: 'increment', payload: step });
   }
 
-  const [_query, setQuery] = useState(query);
+  useEffect(() => {
+    document.addEventListener('scroll', scrollHandler);
+    return function () {
+      document.removeEventListener('scroll', scrollHandler);
+    };
+  }, []);
+
+  function scrollHandler(e) {
+    console.log('scroll');
+  }
+
   const [_gallery, setGallery] = useState(gallery);
   const [_total, setTotal] = useState(total);
   const [_totalHits, setTotalHits] = useState(totalHits);
@@ -63,21 +73,20 @@ export function ImageGalleryHub({
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    setQuery(query);
     setGallery(gallery);
     setTotal(total);
     setTotalHits(totalHits);
-  }, [gallery, query, total, totalHits]);
+  }, [gallery, total, totalHits]);
 
   useEffect(() => {
-    if (!_query) {
+    if (!query) {
       return;
     }
     setStatus(Status.PENDING);
     async function fetchAssets() {
       try {
         const { totalHits, hits } = await API.getGallery(
-          _query,
+          query,
           state.page,
           _perPage
         );
@@ -94,7 +103,7 @@ export function ImageGalleryHub({
       }
     }
     fetchAssets();
-  }, [_perPage, _query, state.page]);
+  }, [_perPage, query, state.page]);
 
   useEffect(() => {
     if (!_totalHits) {
@@ -104,23 +113,29 @@ export function ImageGalleryHub({
     if (totalPages > state.page) {
       setLoadMore(true);
     }
+  }, [_perPage, _totalHits, state.page, totalPages]);
+
+  useEffect(() => {
+    if (!totalPages) {
+      return;
+    }
     if (state.page === totalPages) {
       toast.warn("We're sorry, but you've reached the end of search results.");
       setLoadMore(false);
     }
-  }, [_perPage, _totalHits, state.page, totalPages]);
+  }, [state.page, totalPages]);
 
   useEffect(() => {
-    if (!_query) {
+    if (!query) {
       return;
     }
     if (_total === 0) {
       toast.error(
-        `Sorry, there are no images matching your search query for '${_query}'. Please try again.`
+        `Sorry, there are no images matching your search query for '${query}'. Please try again.`
       );
       setStatus(Status.IDLE);
     }
-  }, [_query, _total]);
+  }, [query, _total]);
 
   useEffect(() => {
     if (!_totalHits) {
@@ -133,7 +148,7 @@ export function ImageGalleryHub({
     return <div>Please let us know your query item</div>;
   }
   if (status === Status.PENDING) {
-    return <ImageGalleryPending query={_query} data={_gallery} />;
+    return <ImageGalleryPending query={query} data={_gallery} />;
   }
   if (status === Status.REJECTED) {
     return <ImageGalleryError message={error.message} />;
@@ -141,7 +156,7 @@ export function ImageGalleryHub({
   if (status === Status.RESOLVED) {
     return (
       <>
-        <ImageGallery data={_gallery} />;
+        <ImageGallery data={_gallery} />
         {loadMore && (
           <Box display="flex" justifyContent="center">
             <Button type="button" onClick={handleMoreImage}>
