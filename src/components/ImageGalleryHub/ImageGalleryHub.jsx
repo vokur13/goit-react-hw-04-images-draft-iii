@@ -38,7 +38,7 @@ export function ImageGalleryHub({
       case 'increment':
         return { ...state, page: state.page + action.payload };
       case 'gallery':
-        return { ...state, gallery: state.gallery, ...action.payload };
+        return { ...state, gallery: [...state.gallery, ...action.payload] };
       default:
         throw new Error(`Unsupported action action type ${action.type}`);
     }
@@ -79,7 +79,7 @@ export function ImageGalleryHub({
         );
         // setGallery(prevState => [...prevState, ...hits]);
         dispatch({ type: 'gallery', payload: hits });
-        console.log(state.gallery);
+        console.log('dispatch', dispatch({ type: 'gallery', payload: hits }));
         setTotal(prevState => prevState + hits.length);
         setTotalHits(totalHits);
         setStatus(Status.RESOLVED);
